@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Untitled</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מילות קישור</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Assistant', sans-serif;
+            background: linear-gradient(135deg, #eef2f3 0%, #8e9eab 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 10px;
+        }
+        .card {
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            max-width: 750px;
+            width: 100%;
+            padding: 2.5rem;
+        }
+        .option-btn {
+            transition: all 0.2s ease;
+            border: 2px solid #e2e8f0;
+            text-align: right;
+        }
+        .option-btn:hover:not(:disabled) {
+            border-color: #4f46e5;
+            background-color: #f5f3ff;
+            transform: scale(1.02);
+        }
+        .correct {
+            background-color: #10b981 !important;
+            color: white !important;
+            border-color: #059669 !important;
+        }
+        .wrong {
+            background-color: #ef4444 !important;
+            color: white !important;
+            border-color: #dc2626 !important;
+        }
+        .progress-bar {
+            height: 12px;
+            background-color: #e2e8f0;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .progress-inner {
+            height: 100%;
+            background: linear-gradient(90deg, #4f46e5, #818cf8);
+            transition: width 0.4s ease;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card" id="game-container">
+    <div id="start-screen" class="text-center">
+        <h1 class="text-4xl font-bold text-indigo-700 mb-4">מילות קישור</h1>
+        <p class="text-lg text-gray-600 mb-8">תרגול מילות קישור בשילוב אוצר המילים של היאם טרביה.</p>
+        <button onclick="startGame()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-10 rounded-full text-xl shadow-lg transition transform hover:scale-105">
+            התחל באתגר
+        </button>
+    </div>
+
+    <div id="game-screen" class="hidden">
+        <div class="flex justify-between items-center mb-4">
+            <span id="score-display" class="font-bold text-indigo-600 text-lg">ניקוד: 0</span>
+            <span id="progress-text" class="text-sm text-gray-500 font-medium"></span>
+        </div>
+        <div class="progress-bar mb-8">
+            <div id="progress-fill" class="progress-inner"></div>
+        </div>
+
+        <div class="mb-10 min-h-[120px] flex items-center justify-center">
+            <h2 id="question-text" class="text-2xl font-semibold text-gray-800 leading-relaxed text-center px-4"></h2>
+        </div>
+
+        <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+
+        <div id="feedback" class="mt-8 text-center font-bold text-lg min-h-[2.5rem]"></div>
+        
+        <div class="mt-8 flex justify-center">
+            <button id="next-btn" onclick="nextQuestion()" class="hidden bg-indigo-800 text-white px-8 py-3 rounded-xl hover:bg-indigo-900 transition shadow-md">
+                המשך לשאלה הבאה
+            </button>
+        </div>
+    </div>
+
+    <div id="end-screen" class="hidden text-center">
+        <div class="text-6xl mb-6">🏆</div>
+        <h2 class="text-3xl font-bold text-indigo-700 mb-4">סיום המשחק!</h2>
+        <p id="final-score-text" class="text-xl mb-6 text-gray-700"></p>
+        <div id="rank-text" class="text-2xl font-bold mb-10 text-emerald-600"></div>
+        <button onclick="resetGame()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-10 rounded-full text-lg shadow-lg transition">
+            נסה שוב
+        </button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        {
+            sentence: "החברה סובלת מ______ חברתית קשה, ______ עלינו לפעול למען אחדות וסובלנות.",
+            options: ["הקצנה / לפיכך", "אחידות / למרות", "הכשרה / בגלל", "תלונה / אך"],
+            correct: 0,
+            explanation: "'הקצנה' מתארת מצב חברתי מתוח, ו'לפיכך' מציין את המסקנה."
+        },
+        {
+            sentence: "______ לכך שסיפקנו את כל המפרט הטכני, המערכת עדיין אינה עובדת.",
+            options: ["הודות", "בניגוד", "נוסף", "עקב"],
+            correct: 2,
+            explanation: "'נוסף על כך' מוסיף מידע המדגיש את הבעיה למרות המפרט."
+        },
+        {
+            sentence: "השופט גזר על הנאשם ______ ממושך בגין עבירה חמורה של מרמה.",
+            options: ["קנס", "מאסר", "מפגע", "סכסוך"],
+            correct: 1,
+            explanation: "עבירה חמורה מובילה בדרך כלל ל'מאסר'."
+        },
+        {
+            sentence: "הוא פעל מתוך ______ וללא היכרות אמיתית עם האדם שעמד מולו.",
+            options: ["מודעות", "חוסן נפשי", "דעה קדומה", "איכות חיים"],
+            correct: 2,
+            explanation: "'דעה קדומה' היא שיפוט מוקדם ללא עובדות."
+        },
+        {
+            sentence: "______ מזג האוויר הסוער, הוכרז ביישוב ______.",
+            options: ["עקב / מצב חירום", "למרות / סכסוך", "בזכות / מנגנון", "לפיכך / תעשייה"],
+            correct: 0,
+            explanation: "סיבה ('עקב') ותוצאה ('מצב חירום')."
+        },
+        {
+            sentence: "השימוש במושגים ______ בישיבה גרם למבוכה רבה בקרב המשתתפים.",
+            options: ["אפקטיביים", "בוטים", "חריגים", "מסורבלים"],
+            correct: 1,
+            explanation: "דיבור 'בוטה' (גס או חריף מדי) גורם למבוכה."
+        },
+        {
+            sentence: "החוקרים מצאו כי בקרב הילדים קיימת ______ גבוהה למחלה, ולכן הם נחשבים ______.",
+            options: ["אזהרה / לצוות", "חשיפה / למפרים", "הימנעות / למפגע", "רגישות / לקבוצת סיכון"],
+            correct: 3,
+            explanation: "מי שנמצא בסיכון גבוה שייך ל'קבוצת סיכון'."
+        },
+        {
+            sentence: "הפרויקט נכשל ______ כשל ב______ הפנימי של הארגון.",
+            options: ["בגלל / מנגנון", "למרות / תעשייה", "הודות ל / רשות מקומית", "לפני / קשת"],
+            correct: 0,
+            explanation: "'בגלל' מציין סיבה, ו'מנגנון' הוא המבנה התפעולי."
+        },
+        {
+            sentence: "______ שהזהרנו את הנהג מספר פעמים, הוא המשיך להיות ______ חוקי התנועה.",
+            options: ["נוסף על כך / תובע", "למרות / מפר", "לפיכך / אחידות", "בגלל / בוטה"],
+            correct: 1,
+            explanation: "'למרות' מציין ניגוד לאזהרה, ו'מפר' הוא מי שלא מציית לחוק."
+        },
+        {
+            sentence: "העירייה מטילה ______ כספי על כל מי שמשליך פסולת ויוצר ______.",
+            options: ["קנס / מפגע", "תביעה / תקנות", "מאסר / סחרחורת", "הכשרה / איכות חיים"],
+            correct: 0,
+            explanation: "'קנס' כספי ניתן על יצירת 'מפגע'."
+        },
+        {
+            sentence: "______ לא היה ניתן לתקן את הנזק שנגרם לציוד היקר.",
+            options: ["הודות ל-", "למרבה הצער", "לפיכך", "נוסף על כך"],
+            correct: 1,
+            explanation: "'למרבה הצער' מציין רגש שלילי כלפי המידע."
+        },
+        {
+            sentence: "הצוות הרפואי הפגין ______ יוצא דופן בהתמודדות עם העומס בבית החולים.",
+            options: ["דכאון", "חוסן נפשי", "סחרחורת", "הסלמה"],
+            correct: 1,
+            explanation: "'חוסן נפשי' הוא היכולת להתמודד עם קשיים ולחצים."
+        },
+        {
+            sentence: "התלמידים עברו ______ מקצועית, ______ הם מוכנים כעת להשתלב בשוק העבודה.",
+            options: ["הכשרה / לפיכך", "הסלמה / למרות", "הדלפה / עקב", "הימנעות / אולם"],
+            correct: 0,
+            explanation: "'הכשרה' היא למידת מקצוע, ו'לפיכך' מציין את התוצאה החיובית."
+        },
+        {
+            sentence: "הוא ______ מהאזהרות החוזרות ונשנות, ______ מצבו הבריאותי התדרדר.",
+            options: ["התעלם / וכתוצאה מכך", "הגשים / אבל", "הפליג / לכן", "תבע / למרות"],
+            correct: 0,
+            explanation: "חוסר תשומת לב מוביל לתוצאה שלילית."
+        },
+        {
+            sentence: "כדי לשמור על ______ בנהלים, על כל העובדים לפעול על פי אותן ______.",
+            options: ["אחידות / תקנות", "סחרחורת / טענות", "הקצנה / תלונות", "נזק / אזהרות"],
+            correct: 0,
+            explanation: "'אחידות' פירושה שוויון בביצוע, ו'תקנות' הן הכללים."
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let answered = false;
+
+    function startGame() {
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+        showQuestion();
+    }
+
+    function showQuestion() {
+        answered = false;
+        const q = questions[currentQuestionIndex];
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const feedback = document.getElementById('feedback');
+        const nextBtn = document.getElementById('next-btn');
+
+        questionText.textContent = q.sentence;
+        optionsContainer.innerHTML = '';
+        feedback.textContent = '';
+        nextBtn.classList.add('hidden');
+
+        document.getElementById('progress-text').textContent = `שאלה ${currentQuestionIndex + 1} מתוך ${questions.length}`;
+        document.getElementById('progress-fill').style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+
+        q.options.forEach((option, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn p-5 rounded-xl text-lg font-medium text-gray-700 bg-white shadow-sm hover:shadow-md w-full';
+            btn.textContent = option;
+            btn.onclick = () => checkAnswer(index, btn);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(selectedIndex, btn) {
+        if (answered) return;
+        answered = true;
+
+        const q = questions[currentQuestionIndex];
+        const feedback = document.getElementById('feedback');
+        const nextBtn = document.getElementById('next-btn');
+        const btns = document.querySelectorAll('.option-btn');
+
+        btns.forEach(b => b.disabled = true);
+
+        if (selectedIndex === q.correct) {
+            score += 10;
+            btn.classList.add('correct');
+            feedback.innerHTML = `<span class="text-emerald-600">מצוין! תשובה נכונה.</span>`;
+            document.getElementById('score-display').textContent = `ניקוד: ${score}`;
+        } else {
+            btn.classList.add('wrong');
+            btns[q.correct].classList.add('correct');
+            feedback.innerHTML = `<span class="text-rose-600">לא נכון. ${q.explanation}</span>`;
+        }
+
+        if (currentQuestionIndex < questions.length - 1) {
+            nextBtn.classList.remove('hidden');
+        } else {
+            setTimeout(endGame, 2000);
+        }
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        showQuestion();
+    }
+
+    function endGame() {
+        document.getElementById('game-screen').classList.add('hidden');
+        const endScreen = document.getElementById('end-screen');
+        endScreen.classList.remove('hidden');
+        
+        document.getElementById('final-score-text').textContent = `צברת ${score} נקודות מתוך ${questions.length * 10}`;
+        
+        let rank = "";
+        const ratio = score / (questions.length * 10);
+        if (ratio === 1) rank = "🥇 מושלם! אתם אלופי העברית!";
+        else if (ratio >= 0.8) rank = "🌟 מצוין! שליטה מרשימה בשפה.";
+        else if (ratio >= 0.6) rank = "👍 יפה מאוד, המשיכו להתאמן!";
+        else rank = "📚 כדאי לחזור על המילים ולנסות שוב.";
+        
+        document.getElementById('rank-text').textContent = rank;
+    }
+
+    function resetGame() {
+        currentQuestionIndex = 0;
+        score = 0;
+        document.getElementById('score-display').textContent = `ניקוד: 0`;
+        document.getElementById('end-screen').classList.add('hidden');
+        document.getElementById('start-screen').classList.remove('hidden');
+    }
+</script>
+
+</body>
+</html>
+    
+  </body>
+  
+</html>
